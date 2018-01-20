@@ -1,0 +1,97 @@
+#include "ListaDias.h";
+void carga(tListaDias &listaD, string nArchivo, bool &ok){
+	ifstream archivo;
+	archivo.open(nArchivo);
+	if (!archivo.is_open()){
+		ok = false;
+	}
+	else {
+		listaD.cont = 0;
+		char aux;
+		tVenta actual;
+		for (int i = 0; i < MAXD; i++){
+			listaD.arrayDias[i] = new tDia;
+		}
+		string fecha;
+		archivo >> fecha;
+		while (fecha != "XXX" && listaD.cont < MAXD){
+			archivo >> actual.hora;
+			archivo >> actual.codigo;
+			archivo >> actual.precio;
+			archivo >> actual.unidades;
+			archivo.get(aux);
+			int pos = encuentra(listaD, fecha, 0, listaD.cont);
+			if (pos = -1){//no esta
+				insertaDia(listaD, fecha, actual);
+			}
+			else {
+				listaD.arrayDias[pos]->vendidos.listaVentas = new tVenta[MAXV];
+				listaD.arrayDias[pos]->vendidos.listaVentas[listaD.arrayDias[pos]->vendidos.cont] = actual;
+			}
+			archivo >> fecha;
+		}
+		
+	}
+}
+void muestra(const tListaDias &listaD){
+	for (int i = 0; i < listaD.cont; i++){
+		cout << "-------------\n";
+		cout << "Dia: " << listaD.arrayDias[i]->fecha;
+		muestraLV(listaD.arrayDias[i]->vendidos);
+		cout << endl;
+	}
+}
+double totalVentas(const tListaDias &listaD){
+	double total = 0;
+	for (int i = 0; i < listaD.cont;i++){
+		total = total + totalVentas(listaD.arrayDias[i]->vendidos);
+	}
+	return total;
+}
+void destruye(tListaDias &listaD){
+	for (int i = 0; i < listaD.cont; i++){
+		destruye(listaD.arrayDias[i]->vendidos);
+		delete listaD.arrayDias[i];
+	}
+}
+int encuentra(const tListaDias &listaD, string fecha, int ini, int fin){
+	bool encontrado = false;
+	int i = 0;
+	int pos = -1;
+	while (ini <= fin && !encontrado){
+		int mit = ini + fin / 2;
+		if (listaD.arrayDias[mit]->fecha == fecha){
+			pos = mit;
+		}
+		else if (listaD.arrayDias[mit]->fecha < fecha){
+			ini = mit + 1;
+		}
+		else if (listaD.arrayDias[mit]->fecha > fecha){
+			fin = mit - 1;
+		}
+		if (!encontrado){
+			pos = encuentra(listaD, fecha, ini, fin);
+		}
+	}
+	return pos;
+}
+void insertaDia(tListaDias &listaD, string fecha, tVenta &venta){
+	tDiaPtr nuevo = new tDia;
+	nuevo->fecha = fecha;
+	nuevo->vendidos.cont = 0;
+	nuevo->vendidos.listaVentas = new tVenta[MAXV];
+	nuevo->vendidos.listaVentas[nuevo->vendidos.cont]= venta;
+	nuevo->vendidos.cont++;
+	int pos = 0;
+	for (int i = 0; i < listaD.cont; i++){
+		if (listaD.arrayDias[i]->fecha > fecha){
+			pos = i;
+		}
+	}
+	//abrimos hueco 
+	listaD.cont++;
+	for (int i = listaD.cont; i > pos; i--){
+		listaD.arrayDias[i] = listaD.arrayDias[i-1];
+	}
+	listaD.arrayDias[pos] = nuevo;
+}
