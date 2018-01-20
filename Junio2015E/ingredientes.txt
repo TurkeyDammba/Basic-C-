@@ -1,0 +1,9 @@
+2000
+cereales
+34
+judias
+45
+tomates
+456
+gusanos
+-1
